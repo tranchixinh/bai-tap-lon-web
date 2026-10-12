@@ -1,1 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website Tin Tức</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <nav><ul class="navbar" id="mainNav"></ul></nav>
+    </div>
+  </header>
 
+  <main class="container">
+    <h2 id="categoryTitle" style="margin-top: 20px;">Tin tức mới nhất</h2>
+    <div class="top-section" id="topSection"></div>
+    <div class="remaining-section" id="remainingSection"></div>
+  </main>
+
+  <footer>
+    <div class="container footer-columns">
+      <div class="footer-col">
+        <h4>Tin Tức 24H</h4>
+        <p>Website tin tức cập nhật thông tin nhanh chóng, chính xác.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Liên kết nhanh</h4>
+        <ul>
+          <li><a href="index.html">Trang chủ</a></li>
+          <li><a href="crawler.html">Trang Crawler</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Chuyên mục</h4>
+        <ul id="footerCategoryList"></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Liên hệ</h4>
+        <p>Email: contact@tintuc.com</p>
+      </div>
+    </div>
+    <div class="copyright">&copy; 2026 Website Tin Tức.</div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
