@@ -37,17 +37,13 @@ const initialPosts = [
     "publishedAt": "2026-09-28 12:22",
     "source": "dantri.com.vn",
     "url": "https://dantri.com.vn/bat-dong-san/ha-noi-tinh-co-che-boi-thuong-dat-dac-biet-cho-7-du-an-duong-sat-20260928122246655.htm",
-    "image": "https://icdn.dantri.com.vn/2023/05/20/duong-sat-1684556789.jpg"
+    "image": "https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=800"
   }
 ];
 
 function initStorage() {
-  if (!localStorage.getItem('menu_data')) {
-    localStorage.setItem('menu_data', JSON.stringify(initialMenu));
-  }
-  if (!localStorage.getItem('posts_data')) {
-    localStorage.setItem('posts_data', JSON.stringify(initialPosts));
-  }
+  localStorage.setItem('menu_data', JSON.stringify(initialMenu));
+  localStorage.setItem('posts_data', JSON.stringify(initialPosts));
 }
 
 initStorage();
