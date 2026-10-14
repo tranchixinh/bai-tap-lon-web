@@ -42,6 +42,7 @@ const initialPosts = [
 ];
 
 function initStorage() {
+  // Chỉ tạo menu nếu chưa có dữ liệu
   if (localStorage.getItem('menu_data') === null) {
     localStorage.setItem(
       'menu_data',
@@ -49,12 +50,41 @@ function initStorage() {
     );
   }
 
-  if (localStorage.getItem('posts_data') === null) {
+  // Đọc dữ liệu bài viết đang có
+  const storedPosts = localStorage.getItem('posts_data');
+
+  if (storedPosts === null) {
+    // Chưa có dữ liệu thì tạo dữ liệu mẫu
     localStorage.setItem(
       'posts_data',
       JSON.stringify(initialPosts)
     );
+  } else {
+    try {
+      const savedPosts = JSON.parse(storedPosts);
+
+      if (Array.isArray(savedPosts)) {
+        const existingIds = new Set(
+          savedPosts.map(post => post.id)
+        );
+
+        // Thêm bài mẫu còn thiếu, không ghi đè bài đã lưu
+        const newPosts = initialPosts.filter(
+          post => !existingIds.has(post.id)
+        );
+
+        const mergedPosts = [...savedPosts, ...newPosts];
+
+        localStorage.setItem(
+          'posts_data',
+          JSON.stringify(mergedPosts)
+        );
+      }
+    } catch (error) {
+      console.error('Không đọc được dữ liệu bài viết:', error);
+    }
   }
 }
 
 initStorage();
+
