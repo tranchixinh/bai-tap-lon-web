@@ -17,6 +17,13 @@
 
     <div id="status" style="margin-bottom: 15px; font-weight: bold;"></div>
     <pre id="jsonResult" style="background: #eef; padding: 15px; border-radius: 5px; max-height: 300px; overflow: auto;"></pre>
+    <textarea id="manualJson" placeholder="Dán dữ liệu bài viết dạng JSON vào đây..."
+  style="width: 100%; min-height: 180px; padding: 10px; box-sizing: border-box;"></textarea>
+
+<button onclick="importManualJson()"
+  style="padding: 10px 20px; margin-top: 10px; cursor: pointer;">
+  Nhập JSON và lưu bài viết
+</button>
     <button id="btnSave" onclick="saveToStorage()" style="display: none; padding: 10px 20px; background: green; color: white; margin-top: 10px; cursor: pointer;">Lưu vào LocalStorage</button>
   </div>
 
@@ -58,5 +65,31 @@
       alert("Đã lưu vào LocalStorage! Bạn có thể về trang chủ để xem.");
     }
   </script>
+  function importManualJson() {
+  try {
+    const raw = document.getElementById("manualJson").value.trim();
+    const post = JSON.parse(raw);
+
+    if (!post.title || !post.url || !post.category) {
+      alert("Bài viết cần có title, url và category.");
+      return;
+    }
+
+    let posts = JSON.parse(localStorage.getItem("posts_data") || "[]");
+
+    const index = posts.findIndex(p => p.id === post.id);
+
+    if (index >= 0) {
+      posts[index] = post;
+    } else {
+      posts.unshift(post);
+    }
+
+    localStorage.setItem("posts_data", JSON.stringify(posts));
+    alert("Đã lưu bài viết thành công!");
+  } catch (error) {
+    alert("JSON không hợp lệ. Bạn hãy kiểm tra lại dữ liệu.");
+  }
+}
 </body>
 </html>
