@@ -1,81 +1,125 @@
-
 async function crawlDanTriArticle(articleUrl) {
   try {
-    const parsedUrl = new URL(articleUrl);
+    // Kiểm tra URL
+    let parsedUrl;
+
+    try {
+      parsedUrl = new URL(articleUrl);
+    } catch {
+      throw new Error("Link không hợp lệ. Hãy kiểm tra lại URL.");
+    }
 
     if (
       parsedUrl.hostname !== "dantri.com.vn" &&
       parsedUrl.hostname !== "www.dantri.com.vn"
     ) {
-      throw new Error("Vui lòng nhập URL từ dantri.com.vn.");
+      throw new Error("Vui lòng nhập link bài viết từ dantri.com.vn.");
     }
 
+    // Lấy HTML thông qua dịch vụ trung gian
     const proxyUrl =
-      `https://api.allorigins.win/get?url=${encodeURIComponent(articleUrl)}`;
+      "https://api.allorigins.win/get?url=" +
+      encodeURIComponent(articleUrl);
 
-    const response = await fetch(proxyUrl);
+    let response;
+
+    try {
+      response = await fetch(proxyUrl);
+    } catch {
+      throw new Error(
+        "Không kết nối được dịch vụ crawl. Hãy dùng chức năng nhập JSON."
+      );
+    }
 
     if (!response.ok) {
-      throw new Error(`Dịch vụ lấy dữ liệu trả về lỗi HTTP ${response.status}.`);
+      throw new Error(
+        "Dịch vụ crawl trả về HTTP " + response.status +
+        ". Hãy thử lại hoặc nhập JSON thủ công."
+      );
     }
 
     const data = await response.json();
 
     if (!data.contents) {
-      throw new Error("Dịch vụ trung gian không trả về nội dung bài báo.");
+      throw new Error("Dịch vụ crawl không trả về nội dung bài báo.");
     }
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(data.contents, "text/html");
+    // Phân tích HTML bài báo
+    const doc = new DOMParser().parseFromString(
+      data.contents,
+      "text/html"
+    );
 
-    const title =
-      doc.querySelector("h1.title-page, .title-page, h1")?.textContent?.trim() || "";
+    const getText = (selectors) => {
+      for (const selector of selectors) {
+        const element = doc.querySelector(selector);
+        if (element && element.textContent.trim()) {
+          return element.textContent.trim();
+        }
+      }
+      return "";
+    };
+
+    const title = getText([
+      "h1.title-page",
+      ".title-page",
+      "h1"
+    ]);
 
     if (!title) {
       throw new Error(
-        "Không tìm thấy tiêu đề. Có thể Dân Trí đã chặn truy cập hoặc thay đổi cấu trúc trang."
+        "Không tìm thấy tiêu đề. Dân Trí có thể đã chặn yêu cầu."
       );
     }
 
-    const excerpt =
-      doc.querySelector(".singular-sapo, .sapo")?.textContent?.trim() || "";
+    const excerpt = getText([
+      ".singular-sapo",
+      ".sapo"
+    ]);
 
-    const contentElems = doc.querySelectorAll(
-      ".singular-content p, .body-content p"
+    const paragraphs = Array.from(
+      doc.querySelectorAll(
+        ".singular-content p, .body-content p"
+      )
     );
 
-    let content = Array.from(contentElems)
+    const content = paragraphs
       .map(p => p.textContent.trim())
       .filter(Boolean)
       .join("\n\n");
 
-    if (!content) content = excerpt;
+    const author = getText([
+      ".author-name",
+      ".singular-author"
+    ]) || "Tổng hợp";
 
-    const author =
-      doc.querySelector(".author-name, .singular-author")?.textContent?.trim() ||
-      "Tổng hợp";
+    const publishedAt = getText([
+      ".author-time",
+      ".singular-time"
+    ]);
 
-    const publishedAt =
-      doc.querySelector(".author-time, .singular-time")?.textContent?.trim() ||
-      "";
-
-    const category =
-      doc.querySelector(".breadcrumb li:nth-child(2) a, .bread-crumb a")
-        ?.textContent?.trim() || "Tin tức";
+    const category = getText([
+      ".breadcrumb li:nth-child(2) a",
+      ".bread-crumb a"
+    ]) || "Tin tức";
 
     const image =
-      doc.querySelector('meta[property="og:image"]')?.getAttribute("content") || "";
+      doc.querySelector('meta[property="og:image"]')
+        ?.getAttribute("content") || "";
 
     const idMatch = articleUrl.match(/(\d+)\.htm$/);
-    const id = idMatch ? `dtri-${idMatch[1]}` : `post-${Date.now()}`;
-    const slug = parsedUrl.pathname.split("/").pop().replace(/\.htm$/, "");
+    const slug = parsedUrl.pathname
+      .split("/")
+      .filter(Boolean)
+      .pop()
+      .replace(/\.htm$/, "");
 
     return {
-      id,
+      id: idMatch ? "dtri-" + idMatch[1] : "post-" + Date.now(),
       title,
       slug,
       excerpt,
-      content,
+      content: content || excerpt,
       author,
       category,
       publishedAt,
