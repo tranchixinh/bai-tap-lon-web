@@ -43,17 +43,16 @@
       statusDiv.innerText = "Đang cào dữ liệu...";
       jsonPre.innerText = "";
       btnSave.style.display = "none";
-
       try {
         currentCrawledPost = await crawlDanTriArticle(url);
         statusDiv.innerText = "Crawl thành công!";
         jsonPre.innerText = JSON.stringify(currentCrawledPost, null, 2);
         btnSave.style.display = "inline-block";
-      } catch (err) {
-        statusDiv.innerText = "Lỗi khi crawl. Hãy kiểm tra URL!";
-      }
+    } catch (err) {
+  console.error("Lỗi crawl chi tiết:", err);
+  statusDiv.innerText = "Lỗi: " + (err.message || err);
+}
     }
-
     function saveToStorage() {
       if (!currentCrawledPost) return;
       let posts = JSON.parse(localStorage.getItem("posts_data") || "[]");
