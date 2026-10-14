@@ -42,8 +42,19 @@ const initialPosts = [
 ];
 
 function initStorage() {
-  localStorage.setItem('menu_data', JSON.stringify(initialMenu));
-  localStorage.setItem('posts_data', JSON.stringify(initialPosts));
+  if (localStorage.getItem('menu_data') === null) {
+    localStorage.setItem(
+      'menu_data',
+      JSON.stringify(initialMenu)
+    );
+  }
+
+  if (localStorage.getItem('posts_data') === null) {
+    localStorage.setItem(
+      'posts_data',
+      JSON.stringify(initialPosts)
+    );
+  }
 }
 
 initStorage();
