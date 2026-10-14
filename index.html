@@ -1,50 +1,136 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Website Tin Tức</title>
-  <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Trần Kim Chi - Bài tập lớn Web</title>
+
+    <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
-  <header>
-    <div class="container">
-      <nav><ul class="navbar" id="mainNav"></ul></nav>
-    </div>
-  </header>
 
-  <main class="container">
-    <h2 id="categoryTitle" style="margin-top: 20px;">Tin tức mới nhất</h2>
-    <div class="top-section" id="topSection"></div>
-    <div class="remaining-section" id="remainingSection"></div>
-  </main>
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="index.html" class="logo">DÂN TRÍ</a>
 
-  <footer>
-    <div class="container footer-columns">
-      <div class="footer-col">
-        <h4>Tin Tức 24H</h4>
-        <p>Website tin tức cập nhật thông tin nhanh chóng, chính xác.</p>
-      </div>
-      <div class="footer-col">
-        <h4>Liên kết nhanh</h4>
-        <ul>
-          <li><a href="index.html">Trang chủ</a></li>
-          <li><a href="crawler.html">Trang Crawler</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Chuyên mục</h4>
-        <ul id="footerCategoryList"></ul>
-      </div>
-      <div class="footer-col">
-        <h4>Liên hệ</h4>
-        <p>Email: contact@tintuc.com</p>
-      </div>
-    </div>
-    <div class="copyright">&copy; 2026 Website Tin Tức.</div>
-  </footer>
+            <nav class="main-navigation">
+                <ul id="mainNav"></ul>
+            </nav>
+        </div>
+    </header>
 
-  <script src="js/data.js"></script>
-  <script src="js/main.js"></script>
+    <!-- NỘI DUNG CHÍNH -->
+    <main class="container">
+
+        <!-- TIÊU ĐỀ TRANG -->
+        <section class="page-heading">
+            <h1 id="categoryTitle">Tin tức mới nhất</h1>
+            <p>Cập nhật tin tức trong nước và quốc tế</p>
+        </section>
+
+        <!-- CÁC BÀI VIẾT NỔI BẬT -->
+        <section id="topSection" class="top-section">
+            <!-- JavaScript tự hiển thị bài viết -->
+        </section>
+
+        <!-- DANH SÁCH TIN TỨC -->
+        <section class="latest-section">
+            <h2 class="section-title">Tin mới nhất</h2>
+
+            <div id="remainingSection" class="remaining-section">
+                <!-- JavaScript tự hiển thị bài viết -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CHÂN TRANG -->
+    <footer class="site-footer">
+        <div class="footer-container">
+
+            <div class="footer-column">
+                <h3>DÂN TRÍ</h3>
+                <p>
+                    Trang tin tức cập nhật thông tin mới nhất
+                    về đời sống, xã hội, kinh tế và thế giới.
+                </p>
+            </div>
+
+            <div class="footer-column">
+                <h3>Liên kết nhanh</h3>
+                <ul>
+                    <li>
+                        <a href="index.html">Trang chủ</a>
+                    </li>
+                    <li>
+                        <a href="crawler.html">Thu thập dữ liệu</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Chuyên mục</h3>
+                <ul id="footerCategoryList"></ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Thông tin sinh viên</h3>
+                <p>Họ và tên: Trần Kim Chi</p>
+                <p>Môn học: Thiết kế Web</p>
+                <p>Bài tập lớn: Website tin tức</p>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2026 - Trần Kim Chi | Bài tập lớn Web</p>
+        </div>
+    </footer>
+
+    <!-- NẠP FILE JAVASCRIPT -->
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- CẬP NHẬT TIÊU ĐỀ CHUYÊN MỤC -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const params = new URLSearchParams(window.location.search);
+            const selectedCat = params.get("cat");
+            const titleElement = document.getElementById("categoryTitle");
+
+            if (!selectedCat || selectedCat === "latest") {
+                titleElement.textContent = "Tin tức mới nhất";
+                return;
+            }
+
+            const menu = JSON.parse(
+                localStorage.getItem("menu_data") || "[]"
+            );
+
+            const allCategories = [];
+
+            menu.forEach(function (item) {
+                allCategories.push(item);
+
+                if (Array.isArray(item.children)) {
+                    allCategories.push(...item.children);
+                }
+            });
+
+            const category = allCategories.find(function (item) {
+                return item.id === selectedCat;
+            });
+
+            titleElement.textContent = category
+                ? category.title
+                : selectedCat;
+        });
+    </script>
+
 </body>
 </html>
+```

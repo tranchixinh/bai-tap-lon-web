@@ -1,48 +1,223 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Chi Tiết Bài Viết</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi tiết bài viết - Tin Tức 24H</title>
   <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    .detail-container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 25px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px #00000010;
+    }
+
+    .detail-title {
+      font-size: 32px;
+      line-height: 1.4;
+      margin-bottom: 15px;
+    }
+
+    .detail-meta {
+      color: #777;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .detail-image {
+      width: 100%;
+      max-height: 500px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .detail-excerpt {
+      font-size: 19px;
+      font-weight: bold;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .detail-content {
+      font-size: 17px;
+      line-height: 1.9;
+      white-space: pre-line;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #b80000;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .detail-error {
+      padding: 30px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .detail-container {
+        margin: 15px auto;
+        padding: 16px;
+      }
+
+      .detail-title {
+        font-size: 24px;
+      }
+
+      .detail-content {
+        font-size: 16px;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <header>
     <div class="container">
-      <nav><ul class="navbar" id="mainNav"></ul></nav>
+      <nav>
+        <ul class="navbar" id="mainNav"></ul>
+      </nav>
     </div>
   </header>
 
-  <main class="container" style="background: #fff; padding: 25px; margin-top: 20px; border-radius: 8px;">
-    <p id="postCategory" style="color: #007bff; font-weight: bold;"></p>
-    <h1 id="postTitle" style="margin: 15px 0;"></h1>
-    <p id="postMeta" style="color: #777; font-size: 14px; margin-bottom: 20px;"></p>
-    <div id="postImageContainer" style="text-align: center; margin-bottom: 20px;"></div>
-    <p id="postExcerpt" style="font-weight: bold; font-size: 18px; margin-bottom: 20px;"></p>
-    <div id="postContent" style="font-size: 16px; line-height: 1.8; white-space: pre-line;"></div>
+  <main class="container">
+    <div class="detail-container" id="articleDetail">
+      <p>Đang tải bài viết...</p>
+    </div>
   </main>
+
+  <footer>
+    <div class="container footer-columns">
+      <div class="footer-col">
+        <h4>Tin Tức 24H</h4>
+        <p>Website tin tức cập nhật thông tin nhanh chóng, chính xác.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Liên kết nhanh</h4>
+        <ul>
+          <li><a href="index.html">Trang chủ</a></li>
+          <li><a href="crawler.html">Trang Crawler</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Chuyên mục</h4>
+        <ul id="footerCategoryList"></ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Liên hệ</h4>
+        <p>Email: contact@tintuc.com</p>
+      </div>
+    </div>
+
+    <div class="copyright">
+      &copy; 2026 Website Tin Tức.
+    </div>
+  </footer>
 
   <script src="js/data.js"></script>
   <script src="js/main.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const postId = urlParams.get("id");
-      const posts = JSON.parse(localStorage.getItem("posts_data")) || [];
 
-      const post = posts.find(p => p.id === postId);
-      if (post) {
-        document.getElementById("postCategory").innerText = `Chuyên mục: ${post.category}`;
-        document.getElementById("postTitle").innerText = post.title;
-        document.getElementById("postMeta").innerText = `Tác giả: ${post.author} | Đăng lúc: ${post.publishedAt} | Nguồn: ${post.source}`;
-        document.getElementById("postExcerpt").innerText = post.excerpt;
-        document.getElementById("postContent").innerText = post.content;
-        if (post.image) {
-          document.getElementById("postImageContainer").innerHTML = `<img src="${post.image}" style="max-width:100%; height:auto; border-radius:6px;">`;
-        }
-      } else {
-        document.querySelector("main").innerHTML = "<h2>Không tìm thấy bài viết!</h2>";
+  <script>
+    function showArticleDetail() {
+      const container = document.getElementById("articleDetail");
+      const params = new URLSearchParams(window.location.search);
+      const articleId = params.get("id");
+
+      const posts = JSON.parse(
+        localStorage.getItem("posts_data")
+      ) || [];
+
+      const article = posts.find(
+        post => String(post.id) === String(articleId)
+      );
+
+      if (!article) {
+        container.innerHTML = `
+          <div class="detail-error">
+            <h2>Không tìm thấy bài viết</h2>
+            <p>Bài viết không tồn tại hoặc chưa được lưu.</p>
+            <a class="back-link" href="index.html">
+              Quay lại trang chủ
+            </a>
+          </div>
+        `;
+        return;
       }
-    });
+
+      const safeText = value => String(value || "").replace(
+        /[&<>"']/g,
+        char => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        })[char]
+      );
+
+      const title = safeText(article.title);
+      const excerpt = safeText(article.excerpt);
+      const content = safeText(article.content);
+      const author = safeText(article.author || "Ban biên tập");
+      const date = safeText(article.publishedAt || "");
+      const category = safeText(article.category || "");
+      const image = article.image || "";
+
+      container.innerHTML = `
+        <a class="back-link" href="index.html">
+          ← Quay lại trang chủ
+        </a>
+
+        <h1 class="detail-title">${title}</h1>
+
+        <div class="detail-meta">
+          Tác giả: ${author}
+          &nbsp; | &nbsp; Ngày đăng: ${date}
+          &nbsp; | &nbsp; Chuyên mục: ${category}
+        </div>
+
+        ${image ? `
+          <img
+            class="detail-image"
+            src="${image}"
+            alt="${title}"
+            onerror="this.style.display='none'"
+          >
+        ` : ""}
+
+        <div class="detail-excerpt">${excerpt}</div>
+
+        <div class="detail-content">${content}</div>
+
+        ${article.url ? `
+          <p>
+            <small>
+              Nguồn:
+              <a href="${safeText(article.url)}"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                ${safeText(article.source || "Xem bài gốc")}
+              </a>
+            </small>
+          </p>
+        ` : ""}
+      `;
+    }
+
+    document.addEventListener("DOMContentLoaded", showArticleDetail);
   </script>
 </body>
 </html>
+```
