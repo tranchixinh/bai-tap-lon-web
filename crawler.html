@@ -1,94 +1,285 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crawler Tin Tức</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .crawler-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    .crawler-container input,
+    .crawler-container textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 15px;
+    }
+
+    .crawler-container button {
+      padding: 11px 18px;
+      margin: 5px 5px 5px 0;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #075eaa;
+      color: white;
+    }
+
+    .crawler-container button:hover {
+      opacity: 0.85;
+    }
+
+    #status {
+      margin: 12px 0;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    #jsonResult {
+      background: #f0f2ff;
+      padding: 15px;
+      border-radius: 5px;
+      max-height: 350px;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .crawler-section {
+      margin: 25px 0;
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="container" style="padding-top: 30px;">
+  <main class="crawler-container">
     <h1>Công Cụ Crawler Tin Tức</h1>
-    <p style="margin-bottom: 15px;"><a href="index.html">← Quay lại Trang Chủ</a></p>
-    
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-      <input type="text" id="urlInput" placeholder="Nhập URL bài viết từ dantri.com.vn..." style="flex: 1; padding: 10px;">
-      <button onclick="handleCrawl()" style="padding: 10px 20px; cursor: pointer;">Crawl Bài Viết</button>
-    </div>
+    <p><a href="index.html">← Quay lại Trang Chủ</a></p>
 
-    <div id="status" style="margin-bottom: 15px; font-weight: bold;"></div>
-    <pre id="jsonResult" style="background: #eef; padding: 15px; border-radius: 5px; max-height: 300px; overflow: auto;"></pre>
-    <textarea id="manualJson" placeholder="Dán dữ liệu bài viết dạng JSON vào đây..."
-  style="width: 100%; min-height: 180px; padding: 10px; box-sizing: border-box;"></textarea>
+    <section class="crawler-section">
+      <h2>1. Crawl bài viết từ Dân Trí</h2>
+      <p>Nhập URL bài báo Dân Trí để thử lấy dữ liệu.</p>
 
-<button onclick="importManualJson()"
-  style="padding: 10px 20px; margin-top: 10px; cursor: pointer;">
-  Nhập JSON và lưu bài viết
-</button>
-    <button id="btnSave" onclick="saveToStorage()" style="display: none; padding: 10px 20px; background: green; color: white; margin-top: 10px; cursor: pointer;">Lưu vào LocalStorage</button>
-  </div>
+      <input
+        type="url"
+        id="urlInput"
+        placeholder="https://dantri.com.vn/..."
+      >
+
+      <button type="button" id="crawlButton" onclick="handleCrawl()">
+        Crawl Bài Viết
+      </button>
+
+      <div id="status" role="status"></div>
+      <pre id="jsonResult"></pre>
+
+      <button
+        type="button"
+        id="btnSave"
+        onclick="saveToStorage()"
+        hidden
+      >
+        Lưu vào LocalStorage
+      </button>
+    </section>
+
+    <section class="crawler-section">
+      <h2>2. Nhập dữ liệu bài viết bằng JSON</h2>
+      <p>
+        Nếu dịch vụ crawl không hoạt động, bạn có thể nhập dữ liệu JSON
+        đã chuẩn bị sẵn để lưu bài viết.
+      </p>
+
+      <textarea
+        id="manualJson"
+        rows="12"
+        placeholder='Dán JSON bài viết vào đây...'
+      ></textarea>
+
+      <button type="button" onclick="importManualJson()">
+        Nhập JSON và lưu bài viết
+      </button>
+    </section>
+
+    <section class="crawler-section">
+      <h2>3. Dữ liệu hiện có</h2>
+      <p id="postCount">Đang kiểm tra dữ liệu...</p>
+      <button type="button" onclick="refreshPostCount()">
+        Cập nhật số bài viết
+      </button>
+    </section>
+  </main>
 
   <script src="js/data.js"></script>
   <script src="js/crawler.js"></script>
+
   <script>
     let currentCrawledPost = null;
 
     async function handleCrawl() {
       const url = document.getElementById("urlInput").value.trim();
-      const statusDiv = document.getElementById("status");
-      const jsonPre = document.getElementById("jsonResult");
-      const btnSave = document.getElementById("btnSave");
+      const status = document.getElementById("status");
+      const result = document.getElementById("jsonResult");
+      const saveButton = document.getElementById("btnSave");
+      const crawlButton = document.getElementById("crawlButton");
 
-      if (!url) { alert("Vui lòng nhập URL!"); return; }
+      currentCrawledPost = null;
+      result.textContent = "";
+      saveButton.hidden = true;
 
-      statusDiv.innerText = "Đang cào dữ liệu...";
-      jsonPre.innerText = "";
-      btnSave.style.display = "none";
+      if (!url) {
+        status.textContent = "Vui lòng nhập URL bài báo.";
+        return;
+      }
+
       try {
+        const parsedUrl = new URL(url);
+
+        if (
+          parsedUrl.hostname !== "dantri.com.vn" &&
+          parsedUrl.hostname !== "www.dantri.com.vn"
+        ) {
+          throw new Error("URL phải thuộc dantri.com.vn.");
+        }
+
+        if (typeof crawlDanTriArticle !== "function") {
+          throw new Error("Không tìm thấy hàm crawlDanTriArticle trong js/crawler.js.");
+        }
+
+        crawlButton.disabled = true;
+        status.textContent = "Đang lấy dữ liệu bài viết...";
+
         currentCrawledPost = await crawlDanTriArticle(url);
-        statusDiv.innerText = "Crawl thành công!";
-        jsonPre.innerText = JSON.stringify(currentCrawledPost, null, 2);
-        btnSave.style.display = "inline-block";
-    } catch (err) {
-  console.error("Lỗi crawl chi tiết:", err);
-  statusDiv.innerText = "Lỗi: " + (err.message || err);
-}
+
+        if (!currentCrawledPost || !currentCrawledPost.title) {
+          throw new Error("Không lấy được tiêu đề bài viết.");
+        }
+
+        result.textContent = JSON.stringify(currentCrawledPost, null, 2);
+        status.textContent = "Crawl thành công. Hãy kiểm tra dữ liệu trước khi lưu.";
+        saveButton.hidden = false;
+      } catch (error) {
+        console.error("Lỗi crawl:", error);
+        status.textContent = "Crawl thất bại: " + (error.message || String(error));
+      } finally {
+        crawlButton.disabled = false;
+      }
     }
+
     function saveToStorage() {
-      if (!currentCrawledPost) return;
-      let posts = JSON.parse(localStorage.getItem("posts_data") || "[]");
-      const index = posts.findIndex(p => p.id === currentCrawledPost.id);
-      if (index !== -1) posts[index] = currentCrawledPost;
-      else posts.unshift(currentCrawledPost);
+      if (!currentCrawledPost) {
+        alert("Chưa có bài viết để lưu.");
+        return;
+      }
 
-      localStorage.setItem("posts_data", JSON.stringify(posts));
-      alert("Đã lưu vào LocalStorage! Bạn có thể về trang chủ để xem.");
+      try {
+        let posts = JSON.parse(localStorage.getItem("posts_data") || "[]");
+
+        if (!Array.isArray(posts)) {
+          posts = [];
+        }
+
+        const index = posts.findIndex(
+          post => post.id === currentCrawledPost.id
+        );
+
+        if (index >= 0) {
+          posts[index] = currentCrawledPost;
+        } else {
+          posts.unshift(currentCrawledPost);
+        }
+
+        localStorage.setItem("posts_data", JSON.stringify(posts));
+        refreshPostCount();
+        alert("Đã lưu bài viết vào LocalStorage của trình duyệt này.");
+      } catch (error) {
+        console.error("Lỗi lưu bài viết:", error);
+        alert("Không thể lưu bài viết. Hãy kiểm tra dữ liệu.");
+      }
     }
+
+    function importManualJson() {
+      try {
+        const raw = document.getElementById("manualJson").value.trim();
+
+        if (!raw) {
+          alert("Bạn chưa dán dữ liệu JSON.");
+          return;
+        }
+
+        const parsed = JSON.parse(raw);
+        const importedPosts = Array.isArray(parsed) ? parsed : [parsed];
+
+        if (importedPosts.length === 0) {
+          alert("Danh sách bài viết đang trống.");
+          return;
+        }
+
+        for (const post of importedPosts) {
+          if (!post.title || !post.url || !post.category) {
+            throw new Error(
+              "Mỗi bài viết cần có ít nhất title, url và category."
+            );
+          }
+        }
+
+        let posts = JSON.parse(localStorage.getItem("posts_data") || "[]");
+
+        if (!Array.isArray(posts)) {
+          posts = [];
+        }
+
+        for (const post of importedPosts) {
+          if (!post.id) {
+            post.id = "post-" + Date.now() + "-" +
+              Math.random().toString(36).slice(2, 8);
+          }
+
+          const index = posts.findIndex(item => item.id === post.id);
+
+          if (index >= 0) {
+            posts[index] = post;
+          } else {
+            posts.unshift(post);
+          }
+        }
+
+        localStorage.setItem("posts_data", JSON.stringify(posts));
+        refreshPostCount();
+
+        alert("Đã nhập và lưu " + importedPosts.length + " bài viết.");
+      } catch (error) {
+        console.error("Lỗi nhập JSON:", error);
+        alert("Không lưu được JSON: " + error.message);
+      }
+    }
+
+    function refreshPostCount() {
+      try {
+        const posts = JSON.parse(localStorage.getItem("posts_data") || "[]");
+        document.getElementById("postCount").textContent =
+          "Số bài viết đã lưu trên trình duyệt này: " +
+          (Array.isArray(posts) ? posts.length : 0);
+      } catch (error) {
+        document.getElementById("postCount").textContent =
+          "Không đọc được dữ liệu LocalStorage.";
+      }
+    }
+
+    refreshPostCount();
   </script>
-  function importManualJson() {
-  try {
-    const raw = document.getElementById("manualJson").value.trim();
-    const post = JSON.parse(raw);
-
-    if (!post.title || !post.url || !post.category) {
-      alert("Bài viết cần có title, url và category.");
-      return;
-    }
-
-    let posts = JSON.parse(localStorage.getItem("posts_data") || "[]");
-
-    const index = posts.findIndex(p => p.id === post.id);
-
-    if (index >= 0) {
-      posts[index] = post;
-    } else {
-      posts.unshift(post);
-    }
-
-    localStorage.setItem("posts_data", JSON.stringify(posts));
-    alert("Đã lưu bài viết thành công!");
-  } catch (error) {
-    alert("JSON không hợp lệ. Bạn hãy kiểm tra lại dữ liệu.");
-  }
-}
 </body>
 </html>
