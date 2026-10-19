@@ -1,11 +1,13 @@
-```html
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Trần Kim Chi - Bài tập lớn Web</title>
+    <meta name="description" content="Website tin tức cập nhật thông tin mới nhất về đời sống, xã hội, kinh tế và thế giới.">
+
+    <title>Dân Trí - Tin tức mới nhất</title>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -15,11 +17,17 @@
     <!-- HEADER -->
     <header class="site-header">
         <div class="header-inner">
-            <a href="index.html" class="logo">DÂN TRÍ</a>
 
-            <nav class="main-navigation">
-                <ul id="mainNav"></ul>
+            <a href="index.html" class="logo" aria-label="Dân Trí - Trang chủ">
+                DÂN TRÍ
+            </a>
+
+            <nav class="main-navigation" aria-label="Menu chính">
+                <ul id="mainNav" class="navbar">
+                    <!-- Menu được tạo tự động bởi js/main.js -->
+                </ul>
             </nav>
+
         </div>
     </header>
 
@@ -27,41 +35,53 @@
     <main class="container">
 
         <!-- TIÊU ĐỀ TRANG -->
-        <section class="page-heading">
+        <section class="page-heading" aria-labelledby="categoryTitle">
             <h1 id="categoryTitle">Tin tức mới nhất</h1>
             <p>Cập nhật tin tức trong nước và quốc tế</p>
         </section>
 
-        <!-- CÁC BÀI VIẾT NỔI BẬT -->
-        <section id="topSection" class="top-section">
-            <!-- JavaScript tự hiển thị bài viết -->
+        <!-- BÀI VIẾT NỔI BẬT -->
+        <section
+            id="topSection"
+            class="top-section"
+            aria-label="Tin tức nổi bật">
+            <!-- Bài viết được hiển thị bởi JavaScript -->
         </section>
 
         <!-- DANH SÁCH TIN TỨC -->
-        <section class="latest-section">
-            <h2 class="section-title">Tin mới nhất</h2>
+        <section class="latest-section" aria-labelledby="latestTitle">
 
-            <div id="remainingSection" class="remaining-section">
-                <!-- JavaScript tự hiển thị bài viết -->
+            <h2 id="latestTitle" class="section-title">
+                Tin mới nhất
+            </h2>
+
+            <div
+                id="remainingSection"
+                class="remaining-section">
+                <!-- Danh sách bài viết được hiển thị bởi JavaScript -->
             </div>
+
         </section>
 
     </main>
 
     <!-- CHÂN TRANG -->
     <footer class="site-footer">
+
         <div class="footer-container">
 
-            <div class="footer-column">
+            <section class="footer-column">
                 <h3>DÂN TRÍ</h3>
+
                 <p>
                     Trang tin tức cập nhật thông tin mới nhất
                     về đời sống, xã hội, kinh tế và thế giới.
                 </p>
-            </div>
+            </section>
 
-            <div class="footer-column">
+            <section class="footer-column">
                 <h3>Liên kết nhanh</h3>
+
                 <ul>
                     <li>
                         <a href="index.html">Trang chủ</a>
@@ -70,46 +90,61 @@
                         <a href="crawler.html">Thu thập dữ liệu</a>
                     </li>
                 </ul>
-            </div>
+            </section>
 
-            <div class="footer-column">
+            <section class="footer-column">
                 <h3>Chuyên mục</h3>
-                <ul id="footerCategoryList"></ul>
-            </div>
 
-            <div class="footer-column">
+                <ul id="footerCategoryList">
+                    <!-- Chuyên mục được tạo bởi JavaScript -->
+                </ul>
+            </section>
+
+            <section class="footer-column">
                 <h3>Thông tin sinh viên</h3>
+
                 <p>Họ và tên: Trần Kim Chi</p>
                 <p>Môn học: Thiết kế Web</p>
                 <p>Bài tập lớn: Website tin tức</p>
-            </div>
+            </section>
 
         </div>
 
         <div class="footer-bottom">
             <p>© 2026 - Trần Kim Chi | Bài tập lớn Web</p>
         </div>
+
     </footer>
 
-    <!-- NẠP FILE JAVASCRIPT -->
+    <!-- JAVASCRIPT -->
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
 
-    <!-- CẬP NHẬT TIÊU ĐỀ CHUYÊN MỤC -->
+    <!-- HIỂN THỊ TIÊU ĐỀ THEO CHUYÊN MỤC -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const params = new URLSearchParams(window.location.search);
             const selectedCat = params.get("cat");
             const titleElement = document.getElementById("categoryTitle");
 
+            if (!titleElement) {
+                return;
+            }
+
             if (!selectedCat || selectedCat === "latest") {
                 titleElement.textContent = "Tin tức mới nhất";
                 return;
             }
 
-            const menu = JSON.parse(
-                localStorage.getItem("menu_data") || "[]"
-            );
+            let menu = [];
+
+            try {
+                menu = JSON.parse(
+                    localStorage.getItem("menu_data") || "[]"
+                );
+            } catch (error) {
+                console.error("Không thể đọc dữ liệu menu:", error);
+            }
 
             const allCategories = [];
 
@@ -122,15 +157,14 @@
             });
 
             const category = allCategories.find(function (item) {
-                return item.id === selectedCat;
+                return String(item.id) === selectedCat;
             });
 
             titleElement.textContent = category
-                ? category.title
+                ? (category.title || category.name || selectedCat)
                 : selectedCat;
         });
     </script>
 
 </body>
 </html>
-```
